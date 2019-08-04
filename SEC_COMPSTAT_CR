@@ -71,9 +71,10 @@ COMP_MCR_FILE_MSEC = pd.merge(newdf, SEC_FILES_1, left_on=['gvkey','doc_Date_1']
 
 #now match back to compstat on gvkey and datadate
 COMP_MCR_FILE = COMP_MCR_FILE.drop(columns=['temp','tempdays'])
-final_match =  pd.merge(COMP_MCR_FILE, COMP_MCR_FILE_MSEC, left_on=['gvkey','datadate'],
-                        right_on = ['gvkey','datadate'], how='left')
-
+final_match =  pd.merge(COMP_MCR_FILE, COMP_MCR_FILE_MSEC[['gvkey','datadate','doc_Date_1','doc_Date','doc_type']]
+                        ,left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'], how='left')
+AA_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/final_match.txt'
+final_match.to_csv(AA_FINAL)
 
 newdf['nn'] = newdf['datadate'] - newdf['doc_Date_1']
 
