@@ -1,0 +1,92 @@
+
+import datetime, csv
+#from sas7bdat import SAS7BDAT
+import pandas as pd
+import pandasql as ps
+import numpy as np
+
+
+
+COMP_MCR_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/MCR_FINAL_1.txt'
+SEC_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/sec_gvkey.txt'
+
+COMP_MCR_FILE = pd.read_csv(COMP_MCR_FINAL, sep="\t", usecols=[0, 1, 2, 4, 5, 8, 9 , 10])#, sep="\t", usecols=[0, 1, 2])
+SEC_FILES = pd.read_csv(SEC_FINAL, sep="\t", usecols=[0, 1, 2])
+SEC_FILES = SEC_FILES.sort_values(by=['gvkey','doc_Date'])
+SEC_FILES = SEC_FILES.dropna()
+
+SEC_FILES = SEC_FILES.astype({'gvkey': 'int64', 'doc_Date':'str'})
+COMP_MCR_FILE = COMP_MCR_FILE.astype({'datadate':'str'})
+#SEC_FILES_1 = SEC_FILES.groupby(['gvkey','doc_Date'])['doc_type'].agg(lambda col: ''.join(col)).unstack()
+#SEC_FILES_1 = SEC_FILES.groupby(['gvkey','doc_Date'])['doc_type'].agg(lambda col: ''.join(col))
+#SEC_FILES_1 = SEC_FILES.groupby(['gvkey','doc_Date'])['doc_type'].agg(lambda col: list(col)) #good, gives me a list
+SEC_FILES_1 = SEC_FILES.groupby(['gvkey','doc_Date'], as_index=False)['doc_type'].agg(lambda col: list(col))
+#SEC_FILES_1 = SEC_FILES.groupby(['gvkey','doc_Date']).apply(lambda x: x.sum())
+#df.groupby('A')['B'].agg(lambda col: ''.join(col))
+#d.groupby('A')['B'].apply(list)
+#groups = dict(list(SEC_FILES_1))
+#SEC_FILES_1.get_group([1004/19870531])
+#SEC_FILES_1.dtypes
+#SEC_FILES_1[1004, 19871130]
+SEC_FILES_1.dtypes
+COMP_MCR_FILE.dtypes
+
+for i in SEC_FILES_1['doc_Date']:
+    print(i[0:4], i[4:6], i[6:8] )
+
+SEC_FILES['doc_Date'] = pd.to_datetime(SEC_FILES['doc_Date'])
+SEC_FILES_1['doc_Date_1'] = pd.to_datetime(SEC_FILES_1['doc_Date'])
+COMP_MCR_FILE['datadate'] = pd.to_datetime(COMP_MCR_FILE['datadate'])
+
+#COMP_MCR_FILE_MSEC = pd.merge(COMP_MCR_FILE, SEC_FILES_1, left_on=['gvkey','datadate'], right_on = ['gvkey','doc_Date'], how='left')
+SEC_FILES_SHORT = SEC_FILES_1[['gvkey','doc_Date_1']]
+#create a temp date to match because I can't figure out how to use panda dates in sql
+COMP_MCR_FILE['temp'] = '19600101'
+SEC_FILES_SHORT['temp'] = '19600101'
+
+COMP_MCR_FILE['temp'] = pd.to_datetime(COMP_MCR_FILE['temp'])
+SEC_FILES_SHORT['temp'] = pd.to_datetime(SEC_FILES_SHORT['temp'])
+
+COMP_MCR_FILE['tempdays'] = (COMP_MCR_FILE['datadate']-COMP_MCR_FILE['temp']).dt.days
+SEC_FILES_SHORT['tempdays'] = (SEC_FILES_SHORT['doc_Date_1']-SEC_FILES_SHORT['temp']).dt.days
+
+sqlcode = '''
+select *
+from COMP_MCR_FILE
+left join SEC_FILES_SHORT on COMP_MCR_FILE.gvkey = SEC_FILES_SHORT.gvkey 
+where ((COMP_MCR_FILE.tempdays - SEC_FILES_SHORT.tempdays) <= 15 
+    and (COMP_MCR_FILE.tempdays - SEC_FILES_SHORT.tempdays) >= -15) 
+'''
+newdf = ps.sqldf(sqlcode, locals())
+newdf = newdf.drop(columns=['temp','tempdays'])
+#newdf = newdf.rename(columns={newdf.columns[0]:'gvkey'}) not working somehow the columns are duplicated
+# remove duplicated columns
+newdf = newdf.loc[:,~newdf.columns.duplicated()] #works
+df = df.loc[:,~df.columns.duplicated()]
+df.rename(columns={ df.columns[1]: "whatever" })
+# now match SEC_Files doc_type
+newdf['datadate'] = pd.to_datetime(newdf['datadate'])
+newdf['doc_Date_1'] = pd.to_datetime(newdf['doc_Date_1'])
+COMP_MCR_FILE_MSEC = pd.merge(newdf, SEC_FILES_1, left_on=['gvkey','doc_Date_1'], right_on = ['gvkey','doc_Date_1'])
+
+#now match back to compstat on gvkey and datadate
+COMP_MCR_FILE = COMP_MCR_FILE.drop(columns=['temp','tempdays'])
+final_match =  pd.merge(COMP_MCR_FILE, COMP_MCR_FILE_MSEC, left_on=['gvkey','datadate'],
+                        right_on = ['gvkey','datadate'], how='left')
+
+
+newdf['nn'] = newdf['datadate'] - newdf['doc_Date_1']
+
+
+dates = {'a':['20140101','20140201'],
+         'b':['20130101','20110101']}
+df = pd.DataFrame(dates, columns=['a','b'])
+df.dtypes
+
+df['e'] = (df['b']-df['d']).dt.days
+df['d'] = '20110101'
+df['a'] = pd.to_datetime(df['a'])
+df['b'] = pd.to_datetime(df['b'])
+df['d'] = pd.to_datetime(df['d'])
+df['a']-
+(df['a']-df['b']).dt.days > 1
