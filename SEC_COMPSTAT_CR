@@ -11,13 +11,16 @@ COMP_MCR_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/MCR_FINA
 COMP_MCR_FINAL_A = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/MCR_FINAL_A.txt'
 SEC_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/sec_gvkey.txt'
 
-COMP_MCR_FILE = pd.read_csv(COMP_MCR_FINAL, sep="\t")#, usecols=[0, 1, 2, 4, 5, 8, 9 , 10])#, sep="\t", usecols=[0, 1, 2])
+#COMP_MCR_FILE = pd.read_csv(COMP_MCR_FINAL, sep="\t")#, usecols=[0, 1, 2, 4, 5, 8, 9 , 10])#, sep="\t", usecols=[0, 1, 2])
+COMP_MCR_FILE = pd.read_csv(COMP_MCR_FINAL_A, sep=",")
 SEC_FILES = pd.read_csv(SEC_FINAL, sep="\t", usecols=[0, 1, 2])
-SEC_FILES = SEC_FILES.sort_values(by=['gvkey','doc_Date'])
 SEC_FILES = SEC_FILES.dropna()
-
+SEC_FILES = SEC_FILES.astype({'gvkey': 'int64', 'doc_Date':'int64'})
 SEC_FILES = SEC_FILES.astype({'gvkey': 'int64', 'doc_Date':'str'})
-COMP_MCR_FILE = COMP_MCR_FILE.astype({'datadate':'str'})
+SEC_FILES = SEC_FILES.sort_values(by=['gvkey','doc_Date'])
+
+
+
 #SEC_FILES_1 = SEC_FILES.groupby(['gvkey','doc_Date'])['doc_type'].agg(lambda col: ''.join(col)).unstack()
 #SEC_FILES_1 = SEC_FILES.groupby(['gvkey','doc_Date'])['doc_type'].agg(lambda col: ''.join(col))
 #SEC_FILES_1 = SEC_FILES.groupby(['gvkey','doc_Date'])['doc_type'].agg(lambda col: list(col)) #good, gives me a list
@@ -32,12 +35,17 @@ SEC_FILES_1 = SEC_FILES.groupby(['gvkey','doc_Date'], as_index=False)['doc_type'
 SEC_FILES_1.dtypes
 COMP_MCR_FILE.dtypes
 
-for i in SEC_FILES_1['doc_Date']:
-    print(i[0:4], i[4:6], i[6:8] )
-
-SEC_FILES['doc_Date'] = pd.to_datetime(SEC_FILES['doc_Date'])
+#for i in SEC_FILES_1['doc_Date']:
+    #print(i[0:4], i[4:6], i[6:8] )
+#SEC_FILES = SEC_FILES.astype({'doc_Date':'str'})
+#SEC_FILES['doc_Date'] = pd.to_datetime(SEC_FILES['doc_Date'])
+#SEC_FILES_1 = SEC_FILES_1.astype({'gvkey': 'int64', 'doc_Date':'int64'})
+#SEC_FILES_1 = SEC_FILES_1.astype({'gvkey': 'int64', 'doc_Date':'str'})
+COMP_MCR_FILE = COMP_MCR_FILE.astype({'datadate':'int64'})
+COMP_MCR_FILE = COMP_MCR_FILE.astype({'datadate':'str'})
 SEC_FILES_1['doc_Date_1'] = pd.to_datetime(SEC_FILES_1['doc_Date'])
 COMP_MCR_FILE['datadate'] = pd.to_datetime(COMP_MCR_FILE['datadate'])
+COMP_MCR_FILE = COMP_MCR_FILE.drop(columns=['Unnamed: 0'])
 
 #COMP_MCR_FILE_MSEC = pd.merge(COMP_MCR_FILE, SEC_FILES_1, left_on=['gvkey','datadate'], right_on = ['gvkey','doc_Date'], how='left')
 SEC_FILES_SHORT = SEC_FILES_1[['gvkey','doc_Date_1']]
@@ -72,7 +80,7 @@ COMP_MCR_FILE_MSEC = pd.merge(newdf, SEC_FILES_1, left_on=['gvkey','doc_Date_1']
 COMP_MCR_FILE = COMP_MCR_FILE.drop(columns=['temp','tempdays'])
 final_match =  pd.merge(COMP_MCR_FILE, COMP_MCR_FILE_MSEC[['gvkey','datadate','doc_Date_1','doc_Date','doc_type']]
                         ,left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'], how='left')
-AA_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/final_match.txt'
+AA_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/final_match_a.txt'
 final_match.to_csv(AA_FINAL)
 
 
