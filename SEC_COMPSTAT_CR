@@ -8,9 +8,10 @@ import numpy as np
 
 
 COMP_MCR_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/MCR_FINAL_1.txt'
+COMP_MCR_FINAL_A = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/MCR_FINAL_A.txt'
 SEC_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/sec_gvkey.txt'
 
-COMP_MCR_FILE = pd.read_csv(COMP_MCR_FINAL, sep="\t", usecols=[0, 1, 2, 4, 5, 8, 9 , 10])#, sep="\t", usecols=[0, 1, 2])
+COMP_MCR_FILE = pd.read_csv(COMP_MCR_FINAL, sep="\t")#, usecols=[0, 1, 2, 4, 5, 8, 9 , 10])#, sep="\t", usecols=[0, 1, 2])
 SEC_FILES = pd.read_csv(SEC_FINAL, sep="\t", usecols=[0, 1, 2])
 SEC_FILES = SEC_FILES.sort_values(by=['gvkey','doc_Date'])
 SEC_FILES = SEC_FILES.dropna()
@@ -62,8 +63,6 @@ newdf = newdf.drop(columns=['temp','tempdays'])
 #newdf = newdf.rename(columns={newdf.columns[0]:'gvkey'}) not working somehow the columns are duplicated
 # remove duplicated columns
 newdf = newdf.loc[:,~newdf.columns.duplicated()] #works
-df = df.loc[:,~df.columns.duplicated()]
-df.rename(columns={ df.columns[1]: "whatever" })
 # now match SEC_Files doc_type
 newdf['datadate'] = pd.to_datetime(newdf['datadate'])
 newdf['doc_Date_1'] = pd.to_datetime(newdf['doc_Date_1'])
@@ -76,7 +75,6 @@ final_match =  pd.merge(COMP_MCR_FILE, COMP_MCR_FILE_MSEC[['gvkey','datadate','d
 AA_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/final_match.txt'
 final_match.to_csv(AA_FINAL)
 
-newdf['nn'] = newdf['datadate'] - newdf['doc_Date_1']
 
 
 dates = {'a':['20140101','20140201'],
