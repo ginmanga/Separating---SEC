@@ -140,9 +140,22 @@ sql_test.sum(axis=0, skipna = True)
 
 #start calculating values compare with LR(2010)
 
+#List of variable names to keep from compustat
+#CAPX : Capital expenditures
+#AQC Aquisitions
+#SPPE sale of property plan and equipment
+#SPPIV sale of property plan and equipment and investments
+#IVCH - inreace in investments
+#SIV sale of investments
+#AT total assets
+#DLTIS :Long-term debt issuance
+#DLTR Long-term debt reduction
+#DLCCH - Current debt 0 changes
 
-
-
+#definitions
+#Net investment = (CAPX+AQC-SPPE+IVCH-SIV)/(AT)
+#Net LT Debt Issues = (DLTIS-DLTR)/AT
+#Net ST Debt Issues = DLCCH/AT
 
 def sas_to_dataframe(file_path):
     """
