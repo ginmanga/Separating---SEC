@@ -7,16 +7,17 @@ import numpy as np
 import SQL.py
 
 AA_FINAL_C = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/final_match.txt'
-AA_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/final_match_a_1.txt'
+AA_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/final_match_a_V1.txt'
 CT = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/ccmxpf_linktable.sas7bdat'
 CT1 = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/ccmxpf_linktable.txt'
+
 
 AA_FINAL_COMPSTAT = pd.read_csv(AA_FINAL_C, sep=",")
 AA_FINAL_COMPSTAT.describe
 AA_FINAL_LINKED = pd.read_csv(AA_FINAL, sep=",")
 AA_FINAL.describe
 
-AA_FINAL = pd.read_csv(AA_FINAL_C, sep=",")
+AA_FINAL = pd.read_csv(AA_FINAL, sep=",")
 
 AA_FINAL = AA_FINAL.drop(columns=['Unnamed: 0'])
 AA_FINAL_COMPSTAT = AA_FINAL.drop(columns=['Unnamed: 0'])
@@ -136,6 +137,11 @@ sql_test['inv_grade_1_hfile']= np.where(np.all([sql_test['inv_grade_1'] == 1, sq
                                          sql_test['sum(hfile*post)'] > 0], axis=0), 1, 0)
 
 sql_test.sum(axis=0, skipna = True)
+
+#start calculating values compare with LR(2010)
+
+
+
 
 
 def sas_to_dataframe(file_path):

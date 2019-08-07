@@ -10,3 +10,4 @@ where ((COMP_MCR_FILE.tempdays - SEC_FILES_SHORT.tempdays) <= 15
     and (COMP_MCR_FILE.tempdays - SEC_FILES_SHORT.tempdays) >= -15) 
 '''
 newdf = ps.sqldf(sqlcode, locals())
+
