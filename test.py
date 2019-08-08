@@ -1,10 +1,10 @@
 COMP_COMP = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/COMPSTAT_all_vars_1970_20150301.txt' # all compustat
-CSC = pd.read_csv(COMP_COMP, sep="\t", nrows=10)#, usecols=[0, 1,2 ,3 ,925 ,1823] )#, header=None)
+CSC = pd.read_csv(COMP_COMP, sep="\t", nrows=100)#, usecols=[0, 1,2 ,3 ,925 ,1823] )#, header=None)
 t2 = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/test/names_adsprate.sas7bdat'
 t1 = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/test/ca293dfa649fdbc6.csv'
 COMP_CRS = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/cpstCR.txt'
 a = CSC.columns.values.tolist()
-
+CSC[['gvkey' == 1004,'fyear','dm']]
 CR = pd.read_csv(COMP_CRS, sep=",")
 CR_N = pd.read_csv(t1, sep=",")
 
