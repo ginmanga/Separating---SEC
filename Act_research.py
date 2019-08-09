@@ -138,9 +138,14 @@ sql_test = ps.sqldf(sqlcode, locals())
 
 #temp['unrated'] = np.where(np.all([temp['splticrm'].isna(), temp['spsdrm'].isna(), temp['spsticrm'].isna()], axis=0), 1, 0)
 ##### Make variables grouping into unrated, junk and high yield
+
+sql_test['hfile'] = np.where(np.all([sql_test['sum(hfile*pre)'] > 0,
+                                     sql_test['sum(hfile*post)'] > 0],
+                                     axis=0), 1, 0)
+
 sql_test['unrated_1'] = np.where(np.all([sql_test['sum(junk*pre)'] == 0, sql_test['sum(junk*post)'] == 0,
                                          sql_test['sum(inv_grade*post)'] == 0, sql_test['sum(inv_grade*pre)'] == 0],
-                                        axis=0), 1, 0)
+                                         axis=0), 1, 0)
 
 sql_test['unrated_1_hfile'] = np.where(np.all([sql_test['unrated_1'] == 1, sql_test['sum(hfile*pre)'] > 0,
                                          sql_test['sum(hfile*post)'] > 0],
@@ -223,9 +228,9 @@ sql_test['CP_L_BOTH_1_hfile']= np.where(np.all([sql_test['CP_L_BOTH'] == 1, sql_
                                          axis=0), 1, 0)
 #### End Commercial paper
 
-sql_test['junk_1_total_obs'] = sql_test['junk_1']*sql_test['sum(pre)']+sql_test['junk_1']*sql_test['sum(post)']
-sql_test['ig_1_total_obs'] = sql_test['inv_grade_1']*sql_test['sum(pre)']+sql_test['inv_grade_1']*sql_test['sum(post)']
-sql_test['unrated_1_total_obs'] = sql_test['unrated_1']*sql_test['sum(pre)']+sql_test['unrated_1']*sql_test['sum(post)']
+sql_test['junk_1_total_obs'] = sql_test['junk_1']*sql_test['sum(pre)'] + sql_test['junk_1'] * sql_test['sum(post)']
+sql_test['ig_1_total_obs'] = sql_test['inv_grade_1'] * sql_test['sum(pre)']+sql_test['inv_grade_1'] * sql_test['sum(post)']
+sql_test['unrated_1_total_obs'] = sql_test['unrated_1'] * sql_test['sum(pre)']+sql_test['unrated_1'] * sql_test['sum(post)']
 sql_test.sum(axis=0, skipna = True)
 
 sql_test_small = sql_test.copy()
@@ -261,15 +266,13 @@ sample_merged = pd.merge(temp_nf,
                          right_on = ['gvkey','datadate'], how='left')
 
 sample_merged_copy = pd.merge(sample_merged,
-                         sql_test_small_fm ,
+                         sql_test_small_fm,
                          left_on=['gvkey'],
-                         right_on = ['gvkey'], how='left')
+                         right_on=['gvkey'], how='left')
 
 sample_merged_copy.to_csv(nf_path)
 
-indexnames= CR_N[(CR_N['sum(pre)'].isna())].index
-CR_N.drop(indexnames, inplace=True)
-CR_NN = CR_N[['gvkey','datadate','splticrm','unrated_1','junk_1','inv_grade_1']]
+
 
 #start calculating values compare with LR(2010)
 

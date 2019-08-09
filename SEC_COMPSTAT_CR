@@ -44,8 +44,8 @@ SEC_FILES_SHORT['temp'] = '19600101'
 COMP_MCR_FILE['temp'] = pd.to_datetime(COMP_MCR_FILE['temp'])
 SEC_FILES_SHORT['temp'] = pd.to_datetime(SEC_FILES_SHORT['temp'])
 
-COMP_MCR_FILE['tempdays'] = (COMP_MCR_FILE['datadate']-COMP_MCR_FILE['temp']).dt.days
-SEC_FILES_SHORT['tempdays'] = (SEC_FILES_SHORT['doc_Date_1']-SEC_FILES_SHORT['temp']).dt.days
+COMP_MCR_FILE['tempdays'] = (COMP_MCR_FILE['datadate'] - COMP_MCR_FILE['temp']).dt.days
+SEC_FILES_SHORT['tempdays'] = (SEC_FILES_SHORT['doc_Date_1'] - SEC_FILES_SHORT['temp']).dt.days
 
 sqlcode = '''
 select *

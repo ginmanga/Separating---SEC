@@ -150,7 +150,7 @@ left join CRPLINK on newdf1.gvkey = CRPLINK.gvkey
 where (newdf1.datadate >= CRPLINK.LINKDT and newdf1.datadate < CRPLINK.LINKENDDT)
 '''
 newdf2 = ps.sqldf(sqlcode, locals())
-#newdf2 = newdf2[newdf2.columns[0,1,2,3,4,5,7,8,9,10,11,21,22]]
+
 newdf2 = newdf2.drop(columns=['Unnamed: 0'])
 newdf2 = newdf2.drop(columns=['conm'])
 newdf2 = newdf2.drop(columns=['tic','cusip','CIK'])
@@ -164,50 +164,3 @@ newdf2 = newdf2.loc[:,~newdf2.columns.duplicated()] #works
 
 newdf2 = newdf2.drop(columns=['Unnamed: 0','conm','tic','cusip','CIK','LINKPRIM',
                               'LIID','LINKTYPE'])
-
-
-B.dtypes
-sqlcode = '''
-select A.gvkey
-from A
-left join B on A.gvkey = B.gvkey
-where A.datadate <=  B.mdatadate
-group by A.gvkey and A.datadate
-'''
-
-sqlcode = '''
-select *
-from A
-left join B on A.gvkey = B.gvkey and A.datadate >= B.mdatadate
-'''
-sqlcode = '''
-select *
-from A
-left join B on A.gvkey = B.gvkey
-where A.datadate >=  B.mdatadate and A.datadate -  B.mdatadate >= 366
-group by A.gvkey, A.datadate 
-'''
-
-
-newdf.sort_values(by=['gvkeydate'])
-newdf = newdf.astype({'gvkey':'str','mdatadate':'str'})
-newdf = newdf.astype({'mdatadate': 'str'})
-newdf.dtypes
-
-newdf[['gvkey','datadate','splticrm','mdatadate']]
-sqlcode2 = '''
-select *
-from A
-sort
-'''
-newdf2 = ps.sqldf(sqlcode, locals())
-where  A.datadate - B.mdatadate < 30 or A.mdatadate = 'nan'
-sqlcode_2 = '''
-select A.gvkey
-from A
-left join B on A.gvkey = B.gvkey
-where A.datadate <=  B.mdatadate
-order by A.gvkey and A.datadate
-'''
-# and A.datadate <= B.nameenddt
-
