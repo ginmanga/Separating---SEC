@@ -10,7 +10,7 @@ import numpy as np
 COMP_MCR_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/MCR_FINAL_1.txt'
 COMP_MCR_FINAL_A = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/MCR_FINAL_A.txt'
 COMP_MCR_FINAL_V1 = 'C:/Users/Panqiao/Documents/Research/SS - All/COMPSTAT/MCR_FINAL_V1.txt'
-SEC_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/sec_gvkey.txt'
+SEC_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/sec_gvkey - v2.txt'
 COMP_MCR_FINAL_A = COMP_MCR_FINAL_V1
 #COMP_MCR_FILE = pd.read_csv(COMP_MCR_FINAL, sep="\t")#, usecols=[0, 1, 2, 4, 5, 8, 9 , 10])#, sep="\t", usecols=[0, 1, 2])
 COMP_MCR_FILE = pd.read_csv(COMP_MCR_FINAL_A, sep=",")
@@ -70,6 +70,6 @@ COMP_MCR_FILE_MSEC.dtypes
 COMP_MCR_FILE_MSEC['datadate'] = pd.to_datetime(COMP_MCR_FILE_MSEC['datadate'])
 final_match =  pd.merge(COMP_MCR_FILE, COMP_MCR_FILE_MSEC[['gvkey','datadate','doc_Date_1','doc_Date','doc_type']]
                         ,left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'], how='left')
-AA_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/final_match_a_V1.txt'
+AA_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/final_match_a_V2.txt'
 final_match.to_csv(AA_FINAL)
 
