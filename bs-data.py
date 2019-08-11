@@ -1,3 +1,13 @@
+###################################
+###################################
+###################################
+###################################
+#takes data with credit rating and document types(sec) and merges with compustat
+#deletes missing data and differentiates companies into groups depending on their credit rating
+
+
+
+
 #start calculating values compare with LR(2010)
 
 #List of variable names to keep from compustat
@@ -278,17 +288,18 @@ sampling_LR = sample_merged_LR_1[['gvkey','datadate','fyear','hfile_o','hfile_cb
                                   'junk_1_LR','junk_2_LR','junk_3_LR', 'ig_1_LR','rated_LR','unrated_LR',
                                   'hjunk_1','lowinv_grade_1','CP_ALL','CP_ALL_BOTH','CP_L_BOTH', 'CP_H_BOTH',
                                   'doc_type_y','doc_Date_1','splticrm','spsdrm', 'spsticrm']]
-
+sampling_LR_JUNK = sampling_LR
 #collpase to get counts of different groups
 sampling_LR = sampling_LR.sort_values(by=['gvkey','datadate'])
 
 sqlcode = '''
-select gvkey, junk_1_LR, junk_2_LR, junk_3_LR, ig_1_LR, rated_LR,
+select gvkey, junk_1_LR, junk_2_LR, junk_3_LR, ig_1_LR, rated_LR, CP_ALL_BOTH,
 (junk_1_LR*hfile_cba) as j_1_hf, 
 (junk_2_LR*hfile_cba) as j_2_hf, 
 (junk_3_LR*hfile_cba) as j_3_hf, 
 (ig_1_LR*hfile_cba) as ig_1_hf, 
-(unrated_LR*hfile_cba) as ur_1_hf
+(unrated_LR*hfile_cba) as ur_1_hf,
+(CP_ALL_BOTH*hfile_cba) as CP_ALL_B_HF
 from sampling_LR
 group by gvkey
 '''
@@ -301,3 +312,89 @@ sample_notcollapsed = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/samplin
 
 sql_test_LR.to_csv(sample_collapsed)
 sampling_LR.to_csv(sample_notcollapsed)
+
+
+################################
+################################
+#Take sample and find all matching unique document and output a separate file with gvkey, doc_Date and all doc_paths
+gvkey_data = sampling_LR[['gvkey','datadate']]
+
+
+SEC_FINAL = 'C:/Users/Panqiao/Documents/Research/SS - All/FINAL/sec_gvkey - v3.txt'
+SEC_FILES = pd.read_csv(SEC_FINAL, sep=",", usecols=[0, 1, 2, 7, 8, 9, 10, 11, 12, 13])
+#SEC_FILES = SEC_FILES.dropna()
+SEC_FILES = SEC_FILES.dropna(how='all')
+SEC_FILES = SEC_FILES.dropna(subset=['gvkey'])
+SEC_FILES = SEC_FILES.astype({'gvkey': 'int64', 'doc_Date':'int64', 'file_date':'int64'})
+SEC_FILES = SEC_FILES.astype({'doc_Date':'str', 'file_date':'str'})
+SEC_FILES.dtypes
+SEC_FILES['doc_Date'] = pd.to_datetime(SEC_FILES['doc_Date'])
+SEC_FILES['file_date'] = pd.to_datetime(SEC_FILES['file_date'])
+SEC_FILES = SEC_FILES.sort_values(by=['gvkey','doc_Date'])
+#keep only 10K and ARs
+#SEC_FILES = SEC_FILES.drop(SEC_FILES[SEC_FILES.doc_type == ].index)
+
+#COMP_MCR_FILE_MSEC = pd.merge(COMP_MCR_FILE, SEC_FILES_1, left_on=['gvkey','datadate'], right_on = ['gvkey','doc_Date'], how='left')
+#create a temp date to match because I can't figure out how to use panda dates in sql
+gvkey_data['temp'] = '19600101'
+SEC_FILES['temp'] = '19600101'
+
+gvkey_data['temp'] = pd.to_datetime(gvkey_data['temp'])
+SEC_FILES['temp'] = pd.to_datetime(SEC_FILES['temp'])
+
+gvkey_data['tempdays'] = (gvkey_data['datadate'] - gvkey_data['temp']).dt.days
+SEC_FILES['tempdays_1'] = (SEC_FILES['doc_Date'] - SEC_FILES['temp']).dt.days
+
+sqlcode = '''
+select *
+from gvkey_data
+left join SEC_FILES on gvkey_data.gvkey = SEC_FILES.gvkey 
+where ((gvkey_data.tempdays - SEC_FILES.tempdays_1) <= 20 
+    and (gvkey_data.tempdays - SEC_FILES.tempdays_1) >= -20) 
+'''
+newdf = ps.sqldf(sqlcode, locals())
+
+newdf['diffdates'] = newdf['tempdays']-newdf['tempdays_1']
+newdf = newdf.drop(columns=['temp', 'tempdays', 'tempdays_1'])
+newdf = newdf.loc[:,~newdf.columns.duplicated()] #works
+newdf.dtypes
+gvkey_data.dtypes
+newdf['datadate'] = pd.to_datetime(newdf['datadate'])
+#ewdf_checl = newdf.loc[(newdf['diffdates'] != 0)]
+#newdf_checl = newdf_checl.drop(columns=['temp','tempdays','tempdays_1','path'])
+
+#now merge back to gvkey_Data
+gvkey_data_docs = pd.merge(gvkey_data, newdf, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = gvkey_data_docs.drop_duplicates(subset=['gvkey','datadate','doc_type','doc_Date','file_date','sec_type'])
+
+gvkey_data_docs_a = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['doc_type'].agg(lambda col: list(col))
+gvkey_data_docs_b = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['sec_type'].agg(lambda col: list(col))
+gvkey_data_docs_c = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['doc_Date'].agg(lambda col: list(col))
+gvkey_data_docs_d = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['file_date'].agg(lambda col: list(col))
+gvkey_data_docs_e = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['diffdates'].agg(lambda col: list(col))
+gvkey_data_docs_f = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['path'].agg(lambda col: list(col))
+gvkey_data_docs_g = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['doc_number'].agg(lambda col: list(col))
+gvkey_data_docs_h = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['line_start'].agg(lambda col: list(col))
+gvkey_data_docs_i = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['line_end'].agg(lambda col: list(col))
+
+gvkey_data_docs = gvkey_data_docs[['gvkey','datadate']]
+
+gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_a, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_b, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_c, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_d, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_e, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_f, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_g, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_h, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_i, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+#wrtie to file
+
+sample_V2 = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/sampling/sampling_v2.txt' #with path and other info
+sampling_LR_V2 = sampling_LR.drop(columns=['doc_type_y', 'doc_Date_1'])
+sampling_LR_V2 = pd.merge(sampling_LR_V2, gvkey_data_docs, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+sampling_LR_V2.to_csv(sample_V2, index=False)
+
+#now from id_data_file get line start and end of document
+
+#now match back to sampling_LR_V2
