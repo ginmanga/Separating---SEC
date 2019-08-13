@@ -104,7 +104,7 @@ sample_path = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/not_collapsed_v
 COMP_DATA = pd.read_csv(COMP, sep=",")
 COMP_CAPX = pd.read_csv(COMP_CAPX, sep=",")
 sample = pd.read_csv(sample_path, sep=",")
-sample = sample.drop(columns=['Unnamed: 0', 'tot_pre', 'tot_psot', 'tot_hfpre', 'tot_hfpost'])
+sample = sample.drop(columns=['Unnamed: 0', 'tot_pre', 'tot_post', 'tot_hfpre', 'tot_hfpost'])
 sample = sample.rename(columns = {'hfile_x':'hfile_o'}) #have file for that year
 sample = sample.rename(columns = {'hfile_y':'hfile_cba'}) # have at least one file in pre and post
 
@@ -288,7 +288,7 @@ sampling_LR = sample_merged_LR_1[['gvkey','datadate','fyear','hfile_o','hfile_cb
                                   'junk_1_LR','junk_2_LR','junk_3_LR', 'ig_1_LR','rated_LR','unrated_LR',
                                   'hjunk_1','lowinv_grade_1','CP_ALL','CP_ALL_BOTH','CP_L_BOTH', 'CP_H_BOTH',
                                   'doc_type_y','doc_Date_1','splticrm','spsdrm', 'spsticrm']]
-sampling_LR_JUNK = sampling_LR
+#sampling_LR_JUNK = sampling_LR
 #collpase to get counts of different groups
 sampling_LR = sampling_LR.sort_values(by=['gvkey','datadate'])
 
@@ -307,12 +307,12 @@ sql_test_LR = ps.sqldf(sqlcode, locals())
 
 sql_test_LR.sum(axis=0, skipna = True)
 
-sample_collapsed = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/sampling/sampling_collapsed_v1.txt'
-sample_notcollapsed = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/sampling/sampling_v1.txt'
+sample_collapsed = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/sampling/sampling_collapsed_temp.txt'
+sample_notcollapsed = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/sampling/sampling_temp.txt'
 
 sql_test_LR.to_csv(sample_collapsed)
 sampling_LR.to_csv(sample_notcollapsed)
-
+#next time can start from here
 
 ################################
 ################################
@@ -364,7 +364,7 @@ newdf['datadate'] = pd.to_datetime(newdf['datadate'])
 #newdf_checl = newdf_checl.drop(columns=['temp','tempdays','tempdays_1','path'])
 
 #now merge back to gvkey_Data
-gvkey_data_docs = pd.merge(gvkey_data, newdf, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+gvkey_data_docs = pd.merge(gvkey_data, newdf, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'], how='left')
 gvkey_data_docs = gvkey_data_docs.drop_duplicates(subset=['gvkey','datadate','doc_type','doc_Date','file_date','sec_type'])
 
 gvkey_data_docs_a = gvkey_data_docs.groupby(['gvkey','datadate'], as_index=False)['doc_type'].agg(lambda col: list(col))
@@ -390,11 +390,26 @@ gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_h, left_on=['gvkey',
 gvkey_data_docs = pd.merge(gvkey_data_docs, gvkey_data_docs_i, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
 #wrtie to file
 
+#fixed problems sss
+sample_V4 = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/sampling/sampling_v4.txt' #with path and other info
+sampling_LR_V4 = sampling_LR.drop(columns=['doc_type_y', 'doc_Date_1'])
+sampling_LR_V4 = pd.merge(sampling_LR_V4, gvkey_data_docs, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+sampling_LR_V4 = sampling_LR_V4.drop_duplicates(subset=['gvkey','datadate'])
+sampling_LR_V4.to_csv(sample_V4, index=False)
+
+
+
+#why does sampling only have obs with docs?
 sample_V2 = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/sampling/sampling_v2.txt' #with path and other info
 sampling_LR_V2 = sampling_LR.drop(columns=['doc_type_y', 'doc_Date_1'])
 sampling_LR_V2 = pd.merge(sampling_LR_V2, gvkey_data_docs, left_on=['gvkey','datadate'], right_on = ['gvkey','datadate'])
+sampling_LR_V2 = sampling_LR_V2.drop_duplicates()
 sampling_LR_V2.to_csv(sample_V2, index=False)
-
+#fixing duplicates
+sampling_LR_V2 = pd.read_csv(sample_V2, sep=",")
+sampling_LR_V3 = sampling_LR_V2.drop_duplicates()
+sample_V3 = 'C:/Users/Panqiao/Documents/Research/SS - All/MFFS/sampling/sampling_v3.txt' #with path and other info
+sampling_LR_V3.to_csv(sample_V3, index=False)
 #now from id_data_file get line start and end of document
 
 #now match back to sampling_LR_V2
