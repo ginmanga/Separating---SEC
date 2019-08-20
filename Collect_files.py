@@ -2,7 +2,8 @@
 # the individual files and important parts of the files
 import pandas as pd
 import os
-
+import Collect_Files_Funcs as cf
+import re
 
 #first go trhough docs again an get file line for first doc
 
@@ -12,49 +13,48 @@ path = os.path.abspath(path)
 #for i in path:
     #print(i)
 
-def folder_loop(path):
-    """Loops through contents of a folder
-    saves file path, keep only text files"""
-    req_paths = []
-    for path, dirs, files in os.walk(path):
-        req_paths.extend([os.path.join(path, i) for i in files])
-    req_paths_doc = [i for i in req_paths if os.path.splitext(i)[1] == ".doc" or os.path.splitext(i)[1] == ".DOC"]
-    req_paths = [i for i in req_paths if os.path.splitext(i)[1] == ".txt" or os.path.splitext(i)[1] == ".TXT"]
-    return req_paths, req_paths_doc
+a = cf.first_line(path)
 
+directory = r'C:\Users\Panqiao\Documents\Research\SEC Online - 05042017\All'
+cf.write_file(directory, "first_line.txt", a, 'w')
 
-def first_line(path):
-    """Go through each file and record file line where the first document starts
-    make a list with path and line start number"""
-    req_paths, req_paths_doc = folder_loop(path)  # creates lists of paths
-    for filename in req_paths:
-        doct_found = 0
-        fhand = open(filename, encoding="utf8")
-        [start, end] = [0, 0]
-        text = []
-        doc_count = 0
-        line_count = 0
-        doc_type_known = False
-        doc_type = ''
-        file_info = [filename, '']
-        doc_info = [filename, '', '', '']
-        doc_data = []
-        start_docu = ["of", "DOCUMENTS"]
-        line_count = 0
+#now collect the documents from the files
 
-        for line in fhand:
-            if all(f in line for f in start_docu):
-                check = [word for word in line.strip().split() if word not in start_docu]
-                if len(check) == 2 and all(s.isdigit for s in check):
-                    print(filename)
-                    print(line)
-                    print(line_count)
-                    break
-            line_count += 1
+directory_sample = "C:/Users/Panqiao/Documents/Research/SECO - DATA - COLLECTION/test/test.csv"
+directory_firstline = "C:/Users/Panqiao/Documents/Research/SEC Online - 05042017/All - SS/first_line.txt"
+sample = pd.read_csv(directory_sample, sep=",")
+firstline = pd.read_csv(directory_firstline, sep="\t")
 
-first_line(path)
+sample_small = sample[['gvkey', 'datadate','fyear', 'doc_type',"sec_type",'path',
+                       'line_start','line_end']]
 
-for i in paths:
-    print(i)
-for i in paths_doc:
-    print(i)
+#dates_CR = CR['datadate'].tolist()
+gvkey_list = sample_small['gvkey'].tolist()
+fyear_list = sample_small['fyear'].tolist()
+doc_type_list = sample_small['doc_type'].tolist()
+doc_type_list2 = [i.replace('[','').replace(']','')
+                  .replace("\'","").replace(" ","").split(",")
+                  for i in sample_small['doc_type']]
+
+doc_type_list2 = [[i.replace('[','').replace(']','')]
+                  for i in sample_small['doc_type']]
+
+sec_type_list = sample_small['sec_type'].tolist()
+path_list = sample_small['path'].tolist()
+line_start_list = sample_small['line_start'].tolist()
+line_end_list = sample_small['line_end'].tolist()
+
+#fixt lists
+
+#doc_type_list = [re.sub('[',"", i) for i in doc_type_list]
+for i in doc_type_list2:
+    a = i[0].replace("\'","").replace(" ","").split(",")
+    print(a)
+    #print(i.strip('[').strip(']').strip().split(','))
+    #print(type(i))
+
+#convert TO LIST OF LISTS
+list_all = [[i] for i in gvkey_list]
+for i, item in enumerate(gvkey_list):
+    list_all[i].append(fyear_list[i])
+    list_all[i].append(doc_type_list[i])
