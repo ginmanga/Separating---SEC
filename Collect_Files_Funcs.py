@@ -11,7 +11,6 @@ def write_file(path_file, filename, data, write_type):
         file.writelines('\t'.join(i) + '\n' for i in data)
     file.close()
 
-
 def folder_loop(path):
     """Loops through contents of a folder
     saves file path, keep only text files"""

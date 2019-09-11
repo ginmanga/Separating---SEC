@@ -17,6 +17,7 @@ path = os.path.abspath(path)
     #print(i)
 
 a = cf.first_line(path)
+########################
 #No need to run anymore#
 #directory = r'C:\Users\Panqiao\Documents\Research\SEC Online - 05042017\All'
 #cf.write_file(directory, "first_line.txt", a, 'w')
@@ -34,7 +35,7 @@ firstline = firstline[['path','first_line']]
 #dates_CR = CR['datadate'].tolist()
 gvkey_list = sample_small['gvkey'].tolist()
 fyear_list = sample_small['fyear'].tolist()
-#doc_type_list = sample_small['doc_type'].tolist()
+
 doc_type_list = [i.replace('[','').replace(']','')
                   .replace("\'","").replace(" ","").split(",")
                   for i in sample_small['doc_type']]
@@ -42,6 +43,7 @@ doc_type_list = [i.replace('[','').replace(']','')
 sec_type_list = [i.replace('[','').replace(']','')
                   .replace("\'","").replace(" ","").split(",")
                   for i in sample_small['sec_type']]
+
 path_list = [i.replace('[','').replace(']','')
                   .replace("\'","").replace(" ","").split(",")
                   for i in sample_small['path']]
@@ -54,6 +56,7 @@ path_list2 = [i.replace('[','').replace(']','')
 line_start_list = [i.replace('[','').replace(']','')
                   .replace("\'","").replace(" ","").split(",")
                   for i in sample_small['line_start']]
+
 line_end_list = [i.replace('[','').replace(']','')
                   .replace("\'","").replace(" ","").split(",")
                   for i in sample_small['line_end']]
@@ -86,32 +89,13 @@ for i, item in enumerate(path_list2):
                          line_start_list[i][j], line_end_list[i][j]])
 
 
-for i, item in enum(new_list):
-    #print(i[0])
-    #print(type(i[0]))
+for i, item in enumerate(new_list):
+    """Add doc_line start to list"""
     try:
-        a = i[0]
-        #a = os.path.abspath(i[0])
-        print(firstline_path2.index(os.path.abspath(i[0])))
-        print(firstline_line[firstline_path2.index(os.path.abspath(i[0]))])
+        a = os.path.abspath(item[0])
+        aa = firstline_path2.index(a)
+        new_list[i].append(firstline_line[aa])
     except:
         continue
 
-firstline_list.index('C:\\Users\\Panqiao\\Documents\\Research\\SEC Online - 05042017\\All\\1988\\AMS - December - 1988 - 1- 500.TXT')
-firstline_path.index('C:\\Users\\Panqiao\\Documents\\Research\\SEC Online - 05042017\\All\\1988\\AMS - December - 1988 - 1- 500.TXT')
-firstline_path[34]
-type(firstline_path[34])
-firstline_path.index('C:\\Users\\Panqiao\\Documents\\Research\\SEC Online - 05042017\\All\\1990\\AMS - March - 1990 - 501- 850.TXT')
-firstline_path.index(r'C:\Users\Panqiao\Documents\Research\SEC Online - 05042017\All\1994\AMS - March - 1994 - 1 - 100.TXT')
-firstline_path.index(r'C:\Users\Panqiao\Documents\Research\SEC Online - 05042017\All\1987\AMS - December - 1987 - 1- 500.TXT')
 
-firstline_path2.index((os.path.abspath(new_list[2][0])))
-
-print(len('C:\\Users\\Panqiao\\Documents\\Research\\SEC Online - 05042017\\All\\1994\\AMS - March - 1994 - 1 - 100.TXT'))
-print(len(r'C:\\Users\\Panqiao\\Documents\\Research\\SEC Online - 05042017\\All\\1994\\AMS - March - 1994 - 1 - 100.TXT'))
-for i in new_list:
-    print(i[0])
-
-pd.dataframe
-
-C:\\Users\\Panqiao\\Documents\\Research\\SEC Online - 05042017\\All\\1994\\AMS - March - 1994 - 1 - 100.TXT
