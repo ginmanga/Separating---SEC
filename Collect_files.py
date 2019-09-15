@@ -25,6 +25,8 @@ a = cf.first_line(path)
 #now collect the documents from the files
 
 directory_sample = "C:/Users/Panqiao/Documents/Research/SECO - DATA - COLLECTION/test/test.csv"
+directory_sample = "C:/Users/Panqiao/Documents/Research/SECO - DATA - COLLECTION/junk.csv"
+directory_sample = "C:/Users/Panqiao/Documents/Research/SECO - DATA - COLLECTION/ig_all.csv"
 directory_firstline = "C:/Users/Panqiao/Documents/Research/SEC Online - 05042017/All - SS/first_line.txt"
 sample = pd.read_csv(directory_sample, sep=",")
 firstline = pd.read_csv(directory_firstline, sep="\t") # line where files start need to add to line start
@@ -36,17 +38,23 @@ firstline = firstline[['path','first_line']]
 gvkey_list = sample_small['gvkey'].tolist()
 fyear_list = sample_small['fyear'].tolist()
 
+
 doc_type_list = [i.replace('[','').replace(']','')
                   .replace("\'","").replace(" ","").split(",")
                   for i in sample_small['doc_type']]
+
+
+for i in doc_type_list:
+    cf.uniquify(i, (f'_{x!s}' for x in range(1, 100)))
+    #print(i)
 
 sec_type_list = [i.replace('[','').replace(']','')
                   .replace("\'","").replace(" ","").split(",")
                   for i in sample_small['sec_type']]
 
-path_list = [i.replace('[','').replace(']','')
-                  .replace("\'","").replace(" ","").split(",")
-                  for i in sample_small['path']]
+#path_list = [i.replace('[','').replace(']','')
+                  #.replace("\'","").replace(" ","").split(",")
+                  #for i in sample_small['path']]
 
 path_list2 = [i.replace('[','').replace(']','')
                   .replace("\'","").split(",")
@@ -70,16 +78,6 @@ firstline_list = []
 for i, item in enumerate(firstline_path):
     firstline_list.append([item,firstline_line[i]])
 
-#fixt lists
-
-#list of things to do
-# For each document, find file line start and extract document
-
-#doc_type_list = [re.sub('[',"", i) for i in doc_type_list]
-#convert TO LIST OF LISTS
-#build a list of lists with all the required information per document
-#first math doc_path with first line
-
 
 new_list = []
 for i, item in enumerate(path_list2):
@@ -98,4 +96,8 @@ for i, item in enumerate(new_list):
     except:
         continue
 
+
+
+path_to_save = r'C:\Users\Panqiao\Documents\Research\SECO - DATA - COLLECTION\Individual Docs\Investment Grade'
+cf.sep_docs(new_list, path_to_save)
 
