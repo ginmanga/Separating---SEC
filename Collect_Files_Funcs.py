@@ -1,5 +1,5 @@
 import pandas as pd
-import os
+import os, sys
 from collections import Counter # Counter counts the number of occurrences of each item
 from itertools import tee, count
 
@@ -48,6 +48,73 @@ def sep_docs(new_list, path_to_save):
             continue
 
 
+def sep_files(directory_sample, path_to_save):
+    """Takes file in directory_sample and separates 10-K and AR and saves them into path_Save
+    saves by gvkey and fyear"""
+    directory_firstline = "C:/Users/Panqiao/Documents/Research/SEC Online - 05042017/All - SS/first_line.txt"
+    sample = pd.read_csv(directory_sample, sep=",")
+    firstline = pd.read_csv(directory_firstline, sep="\t")  # line where files start need to add to line start
+
+    sample_small = sample[['gvkey', 'datadate', 'fyear', 'doc_type', "sec_type", 'path',
+                           'line_start', 'line_end']]
+    firstline = firstline[['path', 'first_line']]
+    # dates_CR = CR['datadate'].tolist()
+    gvkey_list = sample_small['gvkey'].tolist()
+    fyear_list = sample_small['fyear'].tolist()
+
+    doc_type_list = [i.replace('[', '').replace(']', '')
+                         .replace("\'", "").replace(" ", "").split(",")
+                     for i in sample_small['doc_type']]
+
+    for i in doc_type_list:
+        uniquify(i, (f'_{x!s}' for x in range(1, 100)))
+        # print(i)
+
+    sec_type_list = [i.replace('[', '').replace(']', '')
+                         .replace("\'", "").replace(" ", "").split(",")
+                     for i in sample_small['sec_type']]
+
+    # path_list = [i.replace('[','').replace(']','')
+    # .replace("\'","").replace(" ","").split(",")
+    # for i in sample_small['path']]
+
+    path_list2 = [i.replace('[', '').replace(']', '')
+                      .replace("\'", "").split(",")
+                  for i in sample_small['path']]
+
+    line_start_list = [i.replace('[', '').replace(']', '')
+                           .replace("\'", "").replace(" ", "").split(",")
+                       for i in sample_small['line_start']]
+
+    line_end_list = [i.replace('[', '').replace(']', '')
+                         .replace("\'", "").replace(" ", "").split(",")
+                     for i in sample_small['line_end']]
+
+    firstline_line = firstline['first_line'].tolist()
+    firstline_path = firstline['path'].tolist()
+    firstline_path2 = [os.path.abspath(i) for i in firstline_path]
+    firstline_list = []
+
+    for i, item in enumerate(firstline_path):
+        firstline_list.append([item, firstline_line[i]])
+
+    new_list = []
+    for i, item in enumerate(path_list2):
+        for j, item_2 in enumerate(item):
+            new_list.append([item_2.strip(), gvkey_list[i], fyear_list[i],
+                             doc_type_list[i][j], sec_type_list[i][j],
+                             line_start_list[i][j], line_end_list[i][j]])
+
+    for i, item in enumerate(new_list):
+        """Add doc_line start to list"""
+        try:
+            a = os.path.abspath(item[0])
+            aa = firstline_path2.index(a)
+            new_list[i].append(firstline_line[aa])
+        except:
+            continue
+    sep_docs(new_list, path_to_save)
+
 def uniquify(seq, suffs = count(1)):
     """Make all the items unique by adding a suffix (1, 2, etc).
 
@@ -75,6 +142,22 @@ def folder_loop(path):
     req_paths_doc = [i for i in req_paths if os.path.splitext(i)[1] == ".doc" or os.path.splitext(i)[1] == ".DOC"]
     req_paths = [i for i in req_paths if os.path.splitext(i)[1] == ".txt" or os.path.splitext(i)[1] == ".TXT"]
     return req_paths, req_paths_doc
+
+
+def splitall(path):
+    allparts = []
+    while 1:
+        parts = os.path.split(path)
+        if parts[0] == path:  # sentinel for absolute paths
+            allparts.insert(0, parts[0])
+            break
+        elif parts[1] == path: # sentinel for relative paths
+            allparts.insert(0, parts[1])
+            break
+        else:
+            path = parts[0]
+            allparts.insert(0, parts[1])
+    return allparts
 
 def first_line(path):
     """Go through each file and record file line where the first document starts
