@@ -34,24 +34,11 @@ path_to_save = r'C:\Users\Panqiao\Documents\Research\SECO - DATA - COLLECTION\In
 
 #Now write script to separate Management discussion, consolidated balance sheet and notes..
 directory_sample = "C:/Users/Panqiao/Documents/Research/SECO - DATA - COLLECTION/junk.csv"
+
 directory_junk = r"C:\Users\Panqiao\Documents\Research\SECO - DATA - COLLECTION\Individual Docs\junk" #cf.sep_files(directory_sample, path_to_save)
 paths = cf.folder_loop(directory_junk)[0]
 sample = pd.read_csv(directory_sample, sep=",")
 
-sample_small = sample[['gvkey', 'datadate', 'fyear', 'doc_type', "sec_type"]]
-gvkey_list = sample_small['gvkey'].tolist()
-fyear_list = sample_small['fyear'].tolist()
-
-sec_type_list = [i.replace('[', '').replace(']', '')
-                     .replace("\'", "").replace(" ", "").split(",")
-                 for i in sample_small['sec_type']]
-
-doc_type_list = [i.replace('[', '').replace(']', '')
-                     .replace("\'", "").replace(" ", "").split(",")
-                 for i in sample_small['doc_type']]
-new_list = []
-for i, item in enumerate(gvkey_list):
-    new_list.append([item, fyear_list[i], doc_type_list[i], sec_type_list[i]])
 
 def separate_paths(paths):
     """Takes path and """
@@ -198,11 +185,34 @@ def order_path(c):
                     newnew_list[i][2].extend([item[2][in_want]])
     return newnew_list
 
+new_path = cf.separate_paths(paths)
 
-new_list = order_path(collapse_list(separate_paths(paths), x = [0,1], y = [2,3]))
+collapse_list = cf.collapse_list(new_path, x = [0,1], y = [2,3])
+
+new_list = cf.order_path(collapse_list)
+
+def find_tc(lines, type_doc, sec_type):
+    print (lines[0])
 
 
-for i in new_list:
-    print(i)
-len(new_list)
+for i, item in enumerate(new_list):
+    print(item[1], len(item[1]))
+    if len(item[1]) == 1:
+        type_doc = item[1][0].split('_')[0]
+        type_sec = item[1][0].split('_')[-1]
+        print(type_doc,type_sec)
+        #fhand = open(item[2][0]).readlines()
+        lines = open(item[2][0]).readlines()
+        find_tc(lines, type_doc, type_sec)
+        #if type_doc == "10K":
+            #lines = fhand.readlines()
+            #for i in lines:
+                #print(lines)
+        #if type_doc == "AR":
+            #print("that")
+        #print(type_doc)
+    if len(item[1]) == 2:
+        type_doc_1 = item[1][0].split('_')[0]
+        type_doc_2 = item[1][1].split('_')[0]
+
 #now separate the individual components

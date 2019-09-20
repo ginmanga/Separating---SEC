@@ -1,5 +1,5 @@
 import pandas as pd
-import os, sys
+import os, sys, copy
 from collections import Counter # Counter counts the number of occurrences of each item
 from itertools import tee, count
 
@@ -29,6 +29,7 @@ def write_file_direct(path_file, gvkey, fyear, type_doc, type_sec, f):
     with open(dir_to_file, 'w') as file:
         file.writelines(i for i in f)
     return None
+
 
 def sep_docs(new_list, path_to_save):
     """Separates documents from files"""
@@ -138,7 +139,6 @@ def sep_files(directory_sample, path_to_save):
     sample_small = sample[['gvkey', 'datadate', 'fyear', 'doc_type', "sec_type", 'path',
                            'line_start', 'line_end']]
     firstline = firstline[['path', 'first_line']]
-    # dates_CR = CR['datadate'].tolist()
     gvkey_list = sample_small['gvkey'].tolist()
     fyear_list = sample_small['fyear'].tolist()
 
@@ -148,15 +148,10 @@ def sep_files(directory_sample, path_to_save):
 
     for i in doc_type_list:
         uniquify(i, (f'_{x!s}' for x in range(1, 100)))
-        # print(i)
 
     sec_type_list = [i.replace('[', '').replace(']', '')
                          .replace("\'", "").replace(" ", "").split(",")
                      for i in sample_small['sec_type']]
-
-    # path_list = [i.replace('[','').replace(']','')
-    # .replace("\'","").replace(" ","").split(",")
-    # for i in sample_small['path']]
 
     path_list2 = [i.replace('[', '').replace(']', '')
                       .replace("\'", "").split(",")
@@ -194,3 +189,142 @@ def sep_files(directory_sample, path_to_save):
         except:
             continue
     sep_docs(new_list, path_to_save)
+
+
+def separate_paths(paths):
+    """Takes path and """
+
+    new_list = []
+    path1 = [[i] for i in paths]
+    path2 = [[os.path.splitext(i)[0]] for i in paths]
+
+    for i, item in enumerate(path1):
+        a = splitall(path2[i][0])[8:11]
+        a.append(item[0])
+        new_list.append(a)
+    return new_list
+
+def collapse_list(a, x, y, header = 0):
+    #a list to collapse
+    #x group of variables used to collapase, indexes
+    #y list of columns to keep
+    # a collapsed list collpased with a 10K and AR path if any
+    counter_1 = 0
+    counter_2 = 0
+    accumulator_text = []
+    accumulator_doc = []
+    accumulator_path = []
+    if header == 0:
+        collapsed_list = []
+    else:
+        collapsed_list = [[header[i] for i in y]]
+
+    for i, item in enumerate(a):
+        if counter_2 == 0:
+            accumulator_text.append([a[i][ii] for ii in x])
+            list_to_accumulate_doc_type = a[i][y[0]]
+            list_to_accumulate_path = a[i][y[1]]
+
+        if counter_2 > 0:
+            list_to_check = [a[i][ii] for ii in x]
+            list_to_accumulate_doc_type = a[i][y[0]]
+            list_to_accumulate_path = a[i][y[1]]
+            if list_to_check == accumulator_text[-1]:
+                accumulator_text.append([a[i][ii] for ii in x])
+                accumulator_doc.append(list_to_accumulate_doc_type)
+                accumulator_path.append(list_to_accumulate_path)
+
+            if list_to_check != accumulator_text[-1]:
+                b = [accumulator_text[-1]]
+                b.append(accumulator_doc)
+                b.append(accumulator_path)
+                collapsed_list.append(b)
+                accumulator_text = [list_to_check]
+                accumulator_doc = [list_to_accumulate_doc_type]
+                accumulator_path = [list_to_accumulate_path]
+
+        counter_2 += 1
+    return collapsed_list
+
+def order_path(c):
+    """Takes a list with a gvkey and date and several paths and organizes them based on doc type """
+    newnew_list = copy.deepcopy(c)
+    for i, item in enumerate(c):
+        d_type = []
+        s_type = []
+        if len(item[1]) > 1:
+            for j in item[1]:
+                a = j.split("_")
+                d_type.append(a[0])
+                s_type.append(a[-1])
+
+            s_set = set(s_type)
+            d_set = set(d_type)
+
+            if len(s_set) == 1 and len(d_set) == 2 and len(item[1]) == 2:
+                None
+            if len(s_set) == 1 and len(d_set) == 2 and len(item[1]) > 2:
+                i_want = d_type.index('AR')
+                newnew_list[i][1] = [item[1][0]]
+                newnew_list[i][1].extend([item[1][i_want]])
+                newnew_list[i][2] = [item[2][0]]
+                newnew_list[i][2].extend([item[2][i_want]])
+
+            #if len(s_set) > 1 and len(d_set) == 2 and len(item[1]) > 2:
+            if len(s_set) > 1 and len(item[1]) > 2:
+                #print(item[1])
+                #print(s_type)
+                #print(d_type)
+                mix = []
+                for f, item2 in enumerate(d_type):
+                    mixx = item2+s_type[f]
+                    mix.append(mixx)
+
+                try:
+                    i_want = mix.index('AROLD')
+                except:
+                    i_want = 1000
+                try:
+                    in_want = mix.index('ARNEW')
+                except:
+                    in_want = 1000
+                try:
+                    i_want_1 = mix.index('10KOLD')
+                except:
+                    i_want_1 = 1000
+                try:
+                    in_want_1 = mix.index('10KNEW')
+                except:
+                    in_want_1 =1000
+                print(i_want_1,in_want_1)
+                if i_want_1 < 1000 and i_want < 1000:
+                    newnew_list[i][1] = [item[1][i_want_1]]
+                    newnew_list[i][1].extend([item[1][i_want]])
+                    newnew_list[i][2] = [item[2][i_want_1]]
+                    newnew_list[i][2].extend([item[2][i_want]])
+
+                if i_want_1 == 1000 and i_want < 1000 and in_want_1 < 1000:
+                    newnew_list[i][1] = [item[1][i_want]]
+                    newnew_list[i][1].extend([item[1][in_want_1]])
+                    newnew_list[i][2] = [item[2][i_want]]
+                    newnew_list[i][2].extend([item[2][in_want_1]])
+
+                if i_want_1 < 1000 and i_want == 1000 and in_want < 1000:
+                    newnew_list[i][1] = [item[1][i_want_1]]
+                    newnew_list[i][1].extend([item[1][in_want]])
+                    newnew_list[i][2] = [item[2][i_want_1]]
+                    newnew_list[i][2].extend([item[2][in_want]])
+
+                if i_want_1 < 1000 and  in_want_1 < 1000 and i_want == 1000 and in_want == 1000:
+                    newnew_list[i][1] = [item[1][i_want_1]]
+                    newnew_list[i][1].extend([item[1][in_want_1]])
+                    newnew_list[i][2] = [item[2][i_want_1]]
+                    newnew_list[i][2].extend([item[2][in_want_1]])
+
+                if i_want_1 == 1000 and  in_want_1 == 1000 and i_want < 1000 and in_want < 1000:
+                    newnew_list[i][1] = [item[1][i_want]]
+                    newnew_list[i][1].extend([item[1][in_want]])
+                    newnew_list[i][2] = [item[2][i_want]]
+                    newnew_list[i][2].extend([item[2][in_want]])
+    return newnew_list
+
