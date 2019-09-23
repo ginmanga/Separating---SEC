@@ -5,7 +5,7 @@ import os
 import Collect_Files_Funcs as cf
 import re
 import codecs
-import copy
+import copy, unicodedata
 
 
 #first go trhough docs again an get file line for first doc
@@ -191,16 +191,72 @@ collapse_list = cf.collapse_list(new_path, x = [0,1], y = [2,3])
 
 new_list = cf.order_path(collapse_list)
 
+def parse_tabelu(tabelu):
+    mngd = 'MANAGEMENT\'S DISCUSSION AND ANALYSIS'
+    bs = 'CONS. BALANCE SHEETS'
+    ntfs = 'NOTES TO FINANCIAL STATEMENTS'
+    sch9 = 'SCH IX'
+    find_all = [0, 0, 0]
+    find_all_lines = [0, 0, 0]
+    sch9_line = -1
+    for i, item in enumerate(tabelu):
+        if item.find(mngd) != -1:
+            find_all[0] = 1
+            find_all_lines[0] = i#item.find(mngd)
+        if item.find(bs) != -1:
+            find_all[1] = 1
+            find_all_lines[1] = i#item.find(bs)
+        if item.find(ntfs) != -1:
+            find_all[2] = 1
+            find_all_lines[2] = i#item.find(ntfs)
+        if item.find(sch9) != -1:
+            sch9_line = i #item.find(sch9)
+    if find_all ==  [1, 1, 1]:
+        print("found all")
+    if sch9_line > -1:
+        print("found Schedule IX")
+    return find_all, find_all_lines, sch9_line
+
+def est_pag_numbs(a, last_line, tabelu, lines):
+    """find relation between page numbering and table content number"""
+    # a = line on table of contents for item 7
+    #normed_last = unicodedata.normalize('NFKD', tabelu[last_line]).replace('\n', '')
+    normed_mgt = unicodedata.normalize('NFKD', tabelu[a]).replace('\n', '')
+    print(last_line.split())
+    print(normed_mgt)
+
+
 def find_tc(lines, type_doc, sec_type):
-    print (lines[0])
+    page_terms = ['[*1]','[HARDCOPY PAGE 1]', '[HARDCOPY PAGE H1]']
+    line_start = 0
+    line_end = 0
+    for i, item in enumerate(lines):
+        if item.find("TABLE OF CONTENTS") is not -1:
+            line_start = i
+        if any(n in item for n in page_terms):
+            tabelu = lines[line_start:i+1]
+            last_line = item
+            break
+    find_all, find_all_lines, sch9_line = parse_tabelu(tabelu)
+    est_pag_numbs(find_all_lines[0], last_line, tabelu, lines)
+    if sch9_line > -1:
+        normed = unicodedata.normalize('NFKD', tabelu[sch9_line]).replace('\n','')
+        sch9_page = normed.split()[-1]
+        #print
+        #print(tabelu[sch9_line].split('SCH IX'))
+        #print(tabelu[-1])
+    #if find_all == [1, 1, 1]:
+
 
 
 for i, item in enumerate(new_list):
-    print(item[1], len(item[1]))
+    #print(item[1], len(item[1]))
+    #print(item)
     if len(item[1]) == 1:
+        #print(item)
         type_doc = item[1][0].split('_')[0]
         type_sec = item[1][0].split('_')[-1]
-        print(type_doc,type_sec)
+        #print(type_doc, type_sec)
         #fhand = open(item[2][0]).readlines()
         lines = open(item[2][0]).readlines()
         find_tc(lines, type_doc, type_sec)
