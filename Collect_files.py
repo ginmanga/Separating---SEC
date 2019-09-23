@@ -211,34 +211,56 @@ def parse_tabelu(tabelu):
             find_all_lines[2] = i#item.find(ntfs)
         if item.find(sch9) != -1:
             sch9_line = i #item.find(sch9)
-    if find_all ==  [1, 1, 1]:
-        print("found all")
-    if sch9_line > -1:
-        print("found Schedule IX")
+    #if find_all ==  [1, 1, 1]:
+        #print("found all")
+    #if sch9_line > -1:
+        #print("found Schedule IX")
     return find_all, find_all_lines, sch9_line
 
 def est_pag_numbs(a, last_line, tabelu, lines):
     """find relation between page numbering and table content number"""
     # a = line on table of contents for item 7
     #normed_last = unicodedata.normalize('NFKD', tabelu[last_line]).replace('\n', '')
-    normed_mgt = unicodedata.normalize('NFKD', tabelu[a]).replace('\n', '')
-    print(last_line.split())
-    print(normed_mgt)
+    normed_mgt = unicodedata.normalize('NFKD', tabelu[a]).replace('\n', '').split()[-1]
+    bspags = normed_mgt.split('-')
+    #print('HHHHHHHEEEEE')
+    #print(unicodedata.normalize('NFKD', tabelu[a]).replace('\n', '').split())
+    #print(bspags)
+    #print(last_line.split().index('[*1]'))
+    #print(bspags)
+    try:
+        last_line.split().index('[*1]')
+        #for i in lines:
+
+    except:
+        print(last_line.split())
+    #if last_line.split())[0]
+    #last_line.split()
 
 
 def find_tc(lines, type_doc, sec_type):
     page_terms = ['[*1]','[HARDCOPY PAGE 1]', '[HARDCOPY PAGE H1]']
     line_start = 0
     line_end = 0
+    found_none = 0
     for i, item in enumerate(lines):
         if item.find("TABLE OF CONTENTS") is not -1:
             line_start = i
         if any(n in item for n in page_terms):
             tabelu = lines[line_start:i+1]
             last_line = item
+            #print("LAAAAAAA")
+            #print(last_line)
             break
     find_all, find_all_lines, sch9_line = parse_tabelu(tabelu)
-    est_pag_numbs(find_all_lines[0], last_line, tabelu, lines)
+    print(find_all)
+    if find_all[0] == 0: #== [0, 0, 0]:
+        print("TROOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+        est_pag_numbs(find_all_lines[0], last_line, tabelu, lines)
+        found_none = 1
+    if find_all[0] == 1:
+        None
+        #est_pag_numbs(find_all_lines[0], last_line, tabelu, lines)
     if sch9_line > -1:
         normed = unicodedata.normalize('NFKD', tabelu[sch9_line]).replace('\n','')
         sch9_page = normed.split()[-1]
@@ -251,7 +273,7 @@ def find_tc(lines, type_doc, sec_type):
 
 for i, item in enumerate(new_list):
     #print(item[1], len(item[1]))
-    #print(item)
+    print(item)
     if len(item[1]) == 1:
         #print(item)
         type_doc = item[1][0].split('_')[0]
